@@ -16,7 +16,9 @@ For the Data-Dashboarding, a simple and more pythonic package called [**Streamli
 
 
 
-![](/home/adityam/Videos/ezgif.com-gif-maker.gif)
+![](https://raw.githubusercontent.com/lucifermorningstar1305/stackOverTime/main/img/ezgif.com-gif-maker.gif)
+
+
 
 
 
