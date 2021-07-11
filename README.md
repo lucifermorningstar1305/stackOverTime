@@ -22,6 +22,10 @@ For the Data-Dashboarding, a simple and more pythonic package called [**Streamli
 
 
 
+## Live Version
+
+To access the live version, visit this link : https://time-toll.herokuapp.com/
+
 ## Further-Enhancements
 
 This project is still under progress as we all know 

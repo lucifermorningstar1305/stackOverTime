@@ -159,7 +159,7 @@ if __name__ == "__main__":
 
 		st.markdown("")
 		st.header("Top 20 discussion topics in Stack Overflow over the year 2009-2019")
-		st.video('./VIDEOS/race.mp4')
+		st.image('./img/comparison.gif')
 
 
 	if radio == "Data Insights":
