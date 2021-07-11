@@ -1,0 +1,4 @@
+FROM tesseract13/time_toll:latest
+WORKDIR /work
+COPY . /work
+CMD ["sh", "-c", "streamlit run --server.port $PORT init.py"]

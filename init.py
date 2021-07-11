@@ -5,7 +5,6 @@ import seaborn as sns
 import plotly.graph_objects as go
 import plotly.express as px
 import plotly.offline as pyo
-import bar_chart_race as bcr
 import streamlit as st
 import os
 import sys
