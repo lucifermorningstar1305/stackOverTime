@@ -10,7 +10,7 @@ import os
 import sys
 import warnings
 
-
+from statsmodels.tsa.seasonal import seasonal_decompose
 from plotly.subplots import make_subplots
 
 from utils import apply_moving_average_filter
@@ -202,6 +202,19 @@ if __name__ == "__main__":
 		fig4 = box_dist(df_sub2, option, title=f'Distribution Plot of the {option}')
 		st.pyplot(fig4)
 
+		st.header(f'Trend and Seasonality in the {option} tag')
+		ses_trend_res = seasonal_decompose(df_sub2[option], model='additive')
+		fig5, ax5 = plt.subplots(3, 1, figsize=(12, 8))
+		ax5[0].plot(ses_trend_res.trend)
+		ax5[1].plot(ses_trend_res.seasonal)
+		ax5[2].plot(ses_trend_res.resid)
+
+		ax5[0].set_ylabel('Trend')
+		ax5[1].set_ylabel('Seasonal')
+		ax5[2].set_ylabel('Residual')
+
+		st.pyplot(fig5)
+
 		st.header(f"The pattern of the {option} tag")
 
 		slider_val = st.slider('Window Length', min_value=3, max_value=10)
@@ -209,8 +222,10 @@ if __name__ == "__main__":
 		with st.spinner('Calculating the Moving Average ....'):
 			df_sub2['moving_average'] = apply_moving_average_filter(df_sub2[option])
 
-		fig5 = plot_interactive(df_sub2, [option, 'moving_average'], title=f'Pattern in {option} tag')
-		st.write(fig5)
+		fig6 = plot_interactive(df_sub2, [option, 'moving_average'], title=f'Pattern in {option} tag')
+		st.write(fig6)
+
+
 
 
 
