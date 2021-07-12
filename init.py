@@ -220,24 +220,7 @@ if __name__ == "__main__":
 		slider_val = st.slider('Window Length', min_value=3, max_value=10)
 		
 		with st.spinner('Calculating the Moving Average ....'):
-			df_sub2['moving_average'] = apply_moving_average_filter(df_sub2[option])
+			df_sub2['moving_average'] = apply_moving_average_filter(df_sub2[option], win_len=slider_val)
 
 		fig6 = plot_interactive(df_sub2, [option, 'moving_average'], title=f'Pattern in {option} tag')
-		st.write(fig6)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	
+		st.write(fig6)	
