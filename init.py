@@ -13,107 +13,11 @@ import warnings
 from statsmodels.tsa.seasonal import seasonal_decompose
 from plotly.subplots import make_subplots
 
-from utils import apply_moving_average_filter
+from utils import apply_moving_average_filter, plot_interactive, multiple_distribution_plots,\
+ box_dist, interactive_pie_chart, adfuller_test, kpss_test
 
 warnings.filterwarnings('ignore')
 plt.style.use('ggplot')
-
-def plot_interactive(data, cols, title='Interactive Plot'):
-
-	"""
-	Function to plot interactive plot for the data
-
-	Parameters:
-	----------
-	data : pandas.DataFrame
-		Represents the dataset.
-
-	cols : array-like
-		Represents the data to be plotted.
-
-	title : str, optional; default:'Interactive Plot'
-		Represents the title for the plot
-
-
-	Returns:
-	--------
-	fig : plotly.Figure
-		Represents the interactive plot
-
-	"""
-
-
-	layout = dict(autosize=False, width=900, title=title,
-		xaxis=dict(
-
-			rangeslider = dict(visible=True),
-			rangeselector=dict(
-
-				buttons = list([
-
-					dict(count=1, label='1y', step='year', stepmode='backward'),
-					dict(count=3, label='3y', step='year', stepmode='backward'),
-					dict(count=5, label='5y', step='year', stepmode='backward'),
-					dict(step='all')
-
-					])
-
-				)
-			),template='plotly_white')
-
-	fig = go.Figure(layout=layout)
-	for col in cols:
-
-		orgn = go.Scatter(name=f"{col}",
-			x=data.index,
-			y=data[col],
-			mode='lines',
-			line=dict(width=3))
-		fig.add_trace(orgn)
-
-	return fig
-
-
-
-def multiple_distribution_plots(data, cols, title='Distribution Plots'):
-
-	fig, ax = plt.subplots(figsize=(12, 8))
-	
-	for col in cols:
-		sns.distplot(data[col], hist=False, label=f'{col}', ax=ax)
-
-	ax.set_xlabel('Values')
-	ax.legend()
-
-	return fig
-
-
-def box_dist(data, col, title='Distribution Plot'):
-
-	fig, ax = plt.subplots(2, 1, figsize=(12, 8))
-	sns.boxplot(x=data[col], ax=ax[0])
-	sns.distplot(data[col], ax=ax[1])
-	fig.suptitle(title)
-
-	return fig
-
-
-
-def interactive_pie_chart(data):
-	labels = ['python', 'r', 'matlab']
-	value_2009 = [data.loc['2009':'2009', col].values[0] for col in labels]
-	value_2019 = [data.loc['2019':'2019', col].values[0] for col in labels]
-
-	fig = make_subplots(1, 2, specs=[[dict(type='domain'), dict(type='domain')]], subplot_titles=['2009', '2019'])
-
-	fig.add_trace(go.Pie(labels=labels, values=value_2009, scalegroup='one', name='Stackoverflow Question Toll 2009', hole=.3), 1, 1)
-	fig.add_trace(go.Pie(labels=labels, values=value_2019, scalegroup='one', name='Stackoverflow Question Toll 2019', hole=.3), 1, 2)
-
-	fig.update_layout(title_text='Stack Overflow Question Toll of Python, R, and Matlab', width=900)
-	return fig
-
-
-
 
 if __name__ == "__main__":
 
@@ -135,7 +39,7 @@ if __name__ == "__main__":
 		</body>
 		""", unsafe_allow_html=True)
 	
-	radio = st.sidebar.radio("Navigation", ["Home", "Data Insights", "Know Specific Data"])
+	radio = st.sidebar.radio("Navigation", ["Home", "Data Insights", "Know Specific Data", "Statistical Tests"])
 
 	if radio == "Home":
 		st.header("Top 100 records of the StackOverflow Dataset")
@@ -223,4 +127,25 @@ if __name__ == "__main__":
 			df_sub2['moving_average'] = apply_moving_average_filter(df_sub2[option], win_len=slider_val)
 
 		fig6 = plot_interactive(df_sub2, [option, 'moving_average'], title=f'Pattern in {option} tag')
-		st.write(fig6)	
+		st.write(fig6)
+
+
+	if radio == "Statistical Tests":
+
+		option = st.selectbox("Select the Tag which needs to be tested", df.columns.tolist())
+
+		st.header('Augmented Dickey-Fuller Test Results')
+		adtes_res, ad_is_stn = adfuller_test(df[option])
+		st.dataframe(adtes_res)
+		ad_is_stn = "Stationary" if ad_is_stn else "Non-Stationary"
+		st.markdown(f'\n As per the Augmented Dickey Fuller the series for the tag **{option}** is considered to be **{ad_is_stn}**')
+
+		st.markdown("")
+		st.header('KPSS Test Results')
+		option2 = st.selectbox('Select the Null Hypothesis for the KPSS Test', ['c', 'ct'])
+		kpsstest_res, kpss_is_stn = kpss_test(df[option], reg=option2)
+		st.dataframe(kpsstest_res)
+		kpss_is_stn = "Stationary" if kpss_is_stn else "Non-Stationary"
+		st.markdown(f""" 
+			As per the KPSS Test on the series for the tag **{option}** is considered to be **{kpss_is_stn}**
+			""")
