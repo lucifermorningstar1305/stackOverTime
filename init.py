@@ -11,7 +11,6 @@ import sys
 import warnings
 
 from statsmodels.tsa.seasonal import seasonal_decompose
-from plotly.subplots import make_subplots
 
 from utils import apply_moving_average_filter, plot_interactive, multiple_distribution_plots,\
  box_dist, interactive_pie_chart, adfuller_test, kpss_test

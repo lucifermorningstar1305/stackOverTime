@@ -6,8 +6,11 @@ import plotly.graph_objects as go
 import plotly.express as px
 import plotly.offline as pyo
 
+from plotly.subplots import make_subplots
 from statsmodels.tsa.stattools import adfuller, kpss, grangercausalitytests
 from collections import defaultdict
+
+plt.style.use('ggplot')
 
 class MovingAverageFilter:
 
