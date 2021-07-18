@@ -11,14 +11,22 @@ import sys
 import warnings
 
 from statsmodels.tsa.seasonal import seasonal_decompose
+from statsmodels.graphics.tsaplots import plot_acf
+from pandas.tseries.offsets import DateOffset
+from sklearn.metrics import r2_score, mean_squared_error
 
 from utils import apply_moving_average_filter, plot_interactive, multiple_distribution_plots,\
  box_dist, interactive_pie_chart, adfuller_test, kpss_test
+
+from modelling import find_best_fit, arima_fit, load_arima, arima_forecast
 
 warnings.filterwarnings('ignore')
 plt.style.use('ggplot')
 
 if __name__ == "__main__":
+
+	if not os.path.exists('./MODELS'):
+		os.mkdir('./MODELS')
 
 	df = pd.read_csv('./DATA/archive/MLTollsStackOverflow.csv')
 	df['month'] = pd.to_datetime(df['month'], format='%y-%b')
@@ -38,7 +46,7 @@ if __name__ == "__main__":
 		</body>
 		""", unsafe_allow_html=True)
 	
-	radio = st.sidebar.radio("Navigation", ["Home", "Data Insights", "Know Specific Data", "Statistical Tests"])
+	radio = st.sidebar.radio("Navigation", ["Home", "Data Insights", "Know Specific Data", "Statistical Tests", "Data Modelling"])
 
 	if radio == "Home":
 		st.header("Top 100 records of the StackOverflow Dataset")
@@ -118,6 +126,11 @@ if __name__ == "__main__":
 
 		st.pyplot(fig5)
 
+		st.header(f"Auto-Correlation plot of the {option} tag")
+		fig6, ax6 = plt.subplots(figsize=(10, 4))
+		plot_acf(df_sub2[option], use_vlines=False, ax=ax6, title=f'AutoCorrelation of {option}', lags=40)
+		st.pyplot(fig6)
+
 		st.header(f"The pattern of the {option} tag")
 
 		slider_val = st.slider('Window Length', min_value=3, max_value=10)
@@ -125,8 +138,8 @@ if __name__ == "__main__":
 		with st.spinner('Calculating the Moving Average ....'):
 			df_sub2['moving_average'] = apply_moving_average_filter(df_sub2[option], win_len=slider_val)
 
-		fig6 = plot_interactive(df_sub2, [option, 'moving_average'], title=f'Pattern in {option} tag')
-		st.write(fig6)
+		fig7 = plot_interactive(df_sub2, [option, 'moving_average'], title=f'Pattern in {option} tag')
+		st.write(fig7)
 
 
 	if radio == "Statistical Tests":
@@ -148,3 +161,51 @@ if __name__ == "__main__":
 		st.markdown(f""" 
 			As per the KPSS Test on the series for the tag **{option}** is considered to be **{kpss_is_stn}**
 			""")
+
+
+	if radio == "Data Modelling":
+
+		dropdown = st.selectbox('Tag', df.columns.tolist())
+		df_sub = df[[dropdown]]
+
+		slider = st.slider('Test Size (in months)', min_value=12, max_value=48, value=12)
+		last_date = df_sub.index[-1]
+		print('Last Date',last_date)
+		test_date = last_date + DateOffset(months=-slider)
+		print('Test Date',test_date)
+
+		train_data = df_sub[:test_date]
+		test_data = df_sub[test_date:]
+
+		print(len(train_data), len(test_data))
+
+		if st.button('Best-Params'):
+			with st.spinner('Finding the best params....'):
+				best_params = find_best_fit(df_sub[dropdown])
+
+			st.write(best_params)
+
+		if st.button('Fit-Model'):
+			with st.spinner('Fitting the ARIMA model....'):
+				best_params = find_best_fit(df_sub[dropdown])
+				model = arima_fit(train_data[dropdown], best_params['order'], f'./MODELS/arima_{dropdown}.sav')
+				forecast_res = arima_forecast(model, train_data.index[-1], test_data.index[-1] )
+				# print(forecast_res)
+				score = r2_score(test_data[dropdown].values.reshape(-1), forecast_res.values.reshape(-1))
+				rmse = np.sqrt(mean_squared_error(test_data[dropdown].values.reshape(-1), forecast_res.values.reshape(-1)))
+
+
+			st.write("**Model Fitting Complete.**")
+			st.markdown(f'$\mu$ of the test data : {test_data[dropdown].mean()}')
+			st.markdown(f'$RMSE$ of the model : {rmse}')
+			st.markdown(f'$R^{2}$ Score of the model : {score}')
+			
+			fig, ax = plt.subplots(figsize=(12,8))
+			plt.plot(test_data.index, test_data.values, label='Test Data')
+			plt.plot(forecast_res.index, forecast_res.values, label='Forecast')
+			plt.legend()
+			st.pyplot(fig)
+
+
+			
+
