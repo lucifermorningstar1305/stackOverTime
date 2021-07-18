@@ -33,6 +33,7 @@ def find_best_fit(data, seasonal=False, trace=True):
 
 	stepwise_fit = auto_arima(data, seasonal=seasonal, trace=trace, start_p=0, start_q=0, max_p=5, max_q=5)
 	best_params['order'] = stepwise_fit.get_params()['order']
+	best_params['seasonal_order'] = stepwise_fit.get_params()['seasonal_order']
 
 	return best_params
 
